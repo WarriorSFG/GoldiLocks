@@ -1,16 +1,18 @@
 import './App.css'
 import { SendPrompt, TestConnection, CleanResponse } from '../utils/utils.js'
 import { useEffect, useState } from 'react';
+import {Send} from 'lucide-react';
 
 function App() {
   const [serverStatus, setServerStatus] = useState('Checking server status...');
   const [promptResponse, setPromptResponse] = useState('');
-  const [promptResponses, setPromptResponses] = useState([]);
+  const [MessageHistory, setMessageHistory] = useState([]);
   const [userInput, setUserInput] = useState('');
 
   const handleSendPrompt = async (prompt) => {
     try {
       setPromptResponse('Sending prompt...');
+      MessageHistory.length === 0 ? setMessageHistory([{ sender: 'user', message: prompt }]) : setMessageHistory(prev => [...prev, { sender: 'user', message: prompt }]);
       setUserInput('');
       const response = await SendPrompt(prompt);
       //const response = {message: "This is a simulated response from the server."};
@@ -18,9 +20,9 @@ function App() {
       setPromptResponse('Ready to chat!');
       if (cleanedResponse.message) {
         if (cleanedResponse.thought) {
-          setPromptResponses(prev => [...prev, { thought: cleanedResponse.thought, message: cleanedResponse.message }]);
+          setMessageHistory(prev => [...prev, { sender: 'bot', thought: cleanedResponse.thought, message: cleanedResponse.message }]);
         } else {
-          setPromptResponses(prev => [...prev, { thought: "", message: cleanedResponse.message }]);
+          setMessageHistory(prev => [...prev, { sender: 'bot', thought: "", message: cleanedResponse.message }]);
         }
       }
     } catch (error) {
@@ -72,18 +74,22 @@ function App() {
             </div>
             <div className='message-box'>
               <div className='prompt-responses'>
-                {promptResponses.map((response, index) => (
-                  <div key={index} className='response-block'>
-                    {/*response.thought && <p className='thought'>Thought: {response.thought}</p>*/}
-                    <p key={index}>{response.message}</p>
-                  </div>
+                {MessageHistory.map((entry, index) => (
+                  entry.sender === 'user' ? (
+                    <div key={index} className='user-message'>
+                      <p>{entry.message}</p>
+                    </div>
+                  ) : (<div key={index} className='response-block'>
+                      {entry.thought && <p className='thought'>Thought: {entry.thought}</p>}
+                    <p key={index}>{entry.message}</p>
+                  </div>)
                 ))}
               </div>
             </div>
 
             <div className='input-box'>
               <input type="text" placeholder="Enter something..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={handlekeydown} />
-              <button onClick={() => handleSendPrompt(userInput)} disabled={(promptResponse !== 'Ready to chat!')||!userInput}>Send Prompt</button>
+              <button onClick={() => handleSendPrompt(userInput)} disabled={(promptResponse !== 'Ready to chat!')||!userInput}><Send/></button>
             </div>
           </div>
         </div>
