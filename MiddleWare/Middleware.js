@@ -2,7 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const ratelimit = require('express-rate-limit');
 
-const { InstructionOverride } = require('./InstructionOverridePass');
+const { InstructionOverrideCheck } = require('./InstructionOverridePass');
+const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
 
 const app = express();
 
@@ -24,7 +25,7 @@ require('dotenv').config();
 app.post('/api/CheckInstructionOverride', async(req, res) => {
     const {prompt} = req.body;
     try{
-        const isJailbreak = await InstructionOverride(prompt);
+        const isJailbreak = await InstructionOverrideCheck(prompt);
         res.json({ jailbreak: isJailbreak });
     } catch (error) {
         console.error('Error checking for jailbreak:', error);
@@ -32,6 +33,17 @@ app.post('/api/CheckInstructionOverride', async(req, res) => {
     };
 });
 
+//Check if the model is directly outputting protected material.
+app.post('/api/CheckProtectedMaterial', async(req, res) => {
+    const {text} = req.body;
+    try{
+        const isProtected = await ProtectedMaterialCheck(text);
+        res.json({isProtected: isProtected}); 
+    }catch (error){
+        console.error('Error checking for jailbreak:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 app.listen(process.env.PORT || 5000, () => {
     console.log(`Server is running on port ${process.env.PORT || 5000}`);

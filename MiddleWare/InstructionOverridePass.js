@@ -1,4 +1,4 @@
-export async function InstructionOverride(prompt) {    
+export async function InstructionOverrideCheck(prompt) {    
     if(prompt.length > 1000) prompt = prompt.substring(0, 1000);
     
     try {
