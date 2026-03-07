@@ -1,7 +1,8 @@
+const API_URL = 'http://localhost:3000/api';
 
 export const SendPrompt = async (prompt) => {
   try {
-    const response = await fetch('http://localhost:5000/api/SendPrompt', {
+    const response = await fetch(`${API_URL}/SendPrompt`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -23,7 +24,7 @@ export const SendPrompt = async (prompt) => {
 
 export const TestConnection = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/test', {
+    const response = await fetch(`${API_URL}/test`, {
       method: 'GET'
     });
 

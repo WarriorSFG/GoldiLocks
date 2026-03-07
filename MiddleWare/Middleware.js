@@ -9,8 +9,6 @@ const { InstructionOverride } = require('../MiddleWare/TextJailbreak');
 // Environment variables
 require('dotenv').config();
 
-const PORT = process.env.PORT || 5000;
-
 
 //Checks if the user is trying to override instructions or jailbreak the model using Azure Content Safety API
 app.post('/api/CheckInstructionOverride', async(req, res) => {
@@ -24,6 +22,6 @@ app.post('/api/CheckInstructionOverride', async(req, res) => {
     };
 });
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(process.env.PORT || 5000, () => {
+    console.log(`Server is running on port ${process.env.PORT || 5000}`);
 });
