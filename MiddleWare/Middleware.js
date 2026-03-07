@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const ratelimit = require('express-rate-limit');
 
-const { InstructionOverride } = require('../MiddleWare/TextJailbreak');
+const { InstructionOverride } = require('./InstructionOverridePass');
 
 const app = express();
 
