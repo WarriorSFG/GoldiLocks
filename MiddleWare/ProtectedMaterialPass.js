@@ -1,4 +1,4 @@
-export async function ProtectedMaterialCheck(output){
+async function ProtectedMaterialCheck(output){
     try{
         const response = await fetch(`${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/contentsafety/text:detectProtectedMaterial?api-version=2024-09-01`, {
             method: 'POST',
@@ -19,5 +19,10 @@ export async function ProtectedMaterialCheck(output){
         return false;
     }catch(err){
         console.error('Error checking for protected material:', err);
+        return false; // Safe fallback so your server keeps responding
     }
 }
+
+module.exports = {
+    ProtectedMaterialCheck
+};

@@ -1,4 +1,4 @@
-export async function InstructionOverrideCheck(prompt) {    
+async function InstructionOverrideCheck(prompt) {    
     if(prompt.length > 1000) prompt = prompt.substring(0, 1000);
     
     try {
@@ -21,5 +21,10 @@ export async function InstructionOverrideCheck(prompt) {
         return false;
     } catch (error) {
         console.error('Error checking for jailbreak:', error);
+        return false; // Added this so your server doesn't hang if an error occurs
     }
-}
+} 
+
+module.exports = {
+    InstructionOverrideCheck
+};
