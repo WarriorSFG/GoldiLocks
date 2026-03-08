@@ -56,6 +56,21 @@ app.post('/api/CheckProtectedMaterial', async (req, res) => {
     }
 });
 
+//Provide links if github code found 
+app.post('/api/CheckProtectedCode', async(req, res) => {
+    const {code} = req.body;
+    try{
+        const links= await ProtectedCodeCheck(code);
+        if(links){
+            return links;
+        }
+        
+    }catch (error){
+        console.error('Error finding code source:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 //Anonymize PII in the prompt using Presidio and store the mapping in memory. This is a simple implementation and can be improved by using a database or cache for larger scale applications.
 app.post('/api/anonymize', async (req, res) => {
     const { prompt } = req.body;
