@@ -40,8 +40,9 @@ export const TestConnection = async () => {
 };
 
 export const CleanResponse = (response) => {
-    const regex = /<think>([\s\S]*?)<\/think>([\s\S]*)/;
+    const regex = /<think>([\s\S]*?)<\/think>([\s\S]*)/g;
     const match = response.match(regex);
+
     if(match){
         const Obj = { thought: match[1], message: match[2] };
         return Obj;

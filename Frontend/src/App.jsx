@@ -1,7 +1,7 @@
 import './App.css'
 import { SendPrompt, TestConnection, CleanResponse } from '../utils/utils.js'
 import { useEffect, useState } from 'react';
-import {Send} from 'lucide-react';
+import { Send, UserCircle } from 'lucide-react';
 
 function App() {
   const [serverStatus, setServerStatus] = useState('Checking server status...');
@@ -37,6 +37,19 @@ function App() {
     }
   };
 
+  const FormatResponse = (response) => {
+    if (!response) return null;
+
+    const parts = response.split(/(\*\*.*?\*\*)/g);
+
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
   useEffect(() => {
     const checkServer = async () => {
       try {
@@ -69,19 +82,22 @@ function App() {
           </div>
           <div className='message-container'>
             <div className='server-stats'>
-              <p>Server Status: {serverStatus}</p>
+              <p>Server Status: <span className={promptResponse === 'Ready to chat!' ? 'Green' : promptResponse === 'Sending prompt...' ? 'Yellow' : 'Red'}>{serverStatus}</span></p>
               <p>Server Response: {promptResponse}</p>
             </div>
             <div className='message-box'>
-              <div className='prompt-responses'>
+              <div className="prompt-responses">
                 {MessageHistory.map((entry, index) => (
                   entry.sender === 'user' ? (
-                    <div key={index} className='user-message'>
-                      <p>{entry.message}</p>
+                    <div className='user-m-container'>
+                      <div key={index} className='user-message'>
+                        <p>{entry.message}</p>
+                      </div>
+                      <div className='user-icon'><UserCircle size='3rem' /></div>
                     </div>
                   ) : (<div key={index} className='response-block'>
-                      {entry.thought && <p className='thought'>Thought: {entry.thought}</p>}
-                    <p key={index}>{entry.message}</p>
+                    {entry.thought && <p className='thought'>Thought: {entry.thought}</p>}
+                    <p key={index}>{FormatResponse(entry.message)}</p>
                   </div>)
                 ))}
               </div>
@@ -89,7 +105,7 @@ function App() {
 
             <div className='input-box'>
               <input type="text" placeholder="Enter something..." value={userInput} onChange={(e) => setUserInput(e.target.value)} onKeyDown={handlekeydown} />
-              <button onClick={() => handleSendPrompt(userInput)} disabled={(promptResponse !== 'Ready to chat!')||!userInput}><Send/></button>
+              <button onClick={() => handleSendPrompt(userInput)} disabled={(promptResponse !== 'Ready to chat!') || !userInput}><Send /></button>
             </div>
           </div>
         </div>
