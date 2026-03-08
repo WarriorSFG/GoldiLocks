@@ -19,11 +19,11 @@ const limiter = rateLimit({
 const mappingStore = {};
 
 function saveMapping(id, mapping) {
-  mappingStore[id] = mapping;
+    mappingStore[id] = mapping;
 }
 
 function getMapping(id) {
-  return mappingStore[id];
+    return mappingStore[id];
 }
 app.use(limiter);
 app.use(cors());
@@ -33,9 +33,9 @@ app.use(express.json());
 
 
 //Checks if the user is trying to override instructions or jailbreak the model using Azure Content Safety API
-app.post('/api/CheckInstructionOverride', async(req, res) => {
-    const {prompt} = req.body;
-    try{
+app.post('/api/CheckInstructionOverride', async (req, res) => {
+    const { prompt } = req.body;
+    try {
         const isJailbreak = await InstructionOverrideCheck(prompt);
         res.json({ jailbreak: isJailbreak });
     } catch (error) {
@@ -45,53 +45,49 @@ app.post('/api/CheckInstructionOverride', async(req, res) => {
 });
 
 //Check if the model is directly outputting protected material.
-app.post('/api/CheckProtectedMaterial', async(req, res) => {
-    const {text} = req.body;
-    try{
+app.post('/api/CheckProtectedMaterial', async (req, res) => {
+    const { text } = req.body;
+    try {
         const isProtected = await ProtectedMaterialCheck(text);
-        res.json({isProtected: isProtected}); 
-    }catch (error){
+        res.json({ isProtected: isProtected });
+    } catch (error) {
         console.error('Error checking for jailbreak:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
- app.post('/anonymize',async(req,res)=>{
-     console.log("Anonymize route called");
-    console.log(req.body);
-
-    const {prompt}=req.body;
-    try{
-        const anonymized=await anonymizeText(prompt);
+//Anonymize PII in the prompt using Presidio and store the mapping in memory. This is a simple implementation and can be improved by using a database or cache for larger scale applications.
+app.post('/api/anonymize', async (req, res) => {
+    const { prompt } = req.body;
+    try {
+        const anonymized = await anonymizeText(prompt);
         const id = Date.now().toString();
         saveMapping(id, anonymized.mapping);
-        //console.log(anonymized);
         res.json({
             id: id,
             anonymized_text: anonymized.anonymized_text
         });
     }
-    catch(error){
+    catch (error) {
         console.error('Error finding code source:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-    app.post('/deanonymize',async(req,res)=>{
-    const {id, prompt}=req.body;
-    try{
-        
-       
+
+//Deanonymize the text using the mapping stored in memory. Again, this is a simple implementation and can be improved by using a database or cache for larger scale applications.
+app.post('/api/deanonymize', async (req, res) => {
+    const { id, prompt } = req.body;
+    try {
         const mapping = getMapping(id);
-        const deanonymized = await deanonymizeText(prompt,mapping);
-        console.log(deanonymized);
-        res.json({text: deanonymized});
+        const deanonymized = await deanonymizeText(prompt, mapping);
+        res.json({ text: deanonymized });
     }
-    catch(error){
+    catch (error) {
         console.error('Error finding code source:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-   
+
 app.listen(process.env.PORT || 5000, () => {
     console.log(`Server is running on port ${process.env.PORT || 5000}`);
 });
