@@ -13,10 +13,12 @@
 }
 
 .header {
+  display: flex;
   flex-shrink: 0;
-  padding: 0.25rem;
+  padding: 0.5rem;
   text-align: center;
-  border-bottom: 2px solid darkorange;
+  border-bottom: 2px solid #252525;
+  background-color: #101010;
 }
 
 .header h1 {
@@ -44,7 +46,8 @@
   display:flex;
   flex-direction: column;
   text-align: center;
-  border-right: 2px solid darkorange;
+  background-color: #060606;
+  border-right: 2px solid #252525;
   overflow-y: auto;flex-shrink: 0;
 }
 
@@ -53,6 +56,17 @@
   height:100%;
   display:flex;
   flex-direction: column;
+}
+
+.logo{
+  font-size: 1.5em;
+  margin: 0.1em;
+  padding-left: 0.7rem;
+  padding-right: 0.75rem;
+  font-weight: bold;
+  color:white;
+  background-color: #ff8c00;
+  border-radius: 1rem;
 }
 
 .chat-list{
@@ -80,7 +94,18 @@
   display: flex;
   width: 100%;
   justify-content:space-around;
+  justify-content: end;
+}
+
+.stat{
+  display: flex;
+  border: 1px solid #252525;
+  border-radius: 2rem;
   padding:0.5rem;
+  margin-right: 2rem;
+  flex-direction: column;
+  align-items: center;
+  gap:0.25rem;
 }
 
 .prompt-responses{
@@ -104,19 +129,27 @@
   display: flex;
   text-align: center;
   padding: 0.1rem;
+  background-color: #101010;
   border-top: 1px solid #333;
   flex-shrink: 0;
 }
 
 .input-box input{
-  border: 2px solid darkorange;
   border-radius: 16px;
   height: 3rem;
   width: 100%;
   margin: 0.25rem;
   margin-right: 0.5rem;
   padding:0.1rem;
+  background-color: transparent;
+  color: white;
+  border: 1px solid #333;
+  outline: none;
   font-size:1em;
+}
+
+.input-box input:focus{
+  border: 1px solid #515151;
 }
 
 .input-box button{
@@ -139,7 +172,7 @@
 
 .user-message{
   align-self: flex-end;
-  background-color: #333;
+  background-color: #ff8c00;
   color: white;
   padding:0rem;
   padding-left: 1rem;
@@ -159,6 +192,9 @@
 .user-icon{
   display: flex;
   align-self:flex-end;
+  background-color: #ff8c00;
+  border-radius: 50%;
+  padding: 0.25rem;
 }
 
 .Green{

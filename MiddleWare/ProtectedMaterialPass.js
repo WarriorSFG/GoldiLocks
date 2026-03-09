@@ -19,7 +19,7 @@ async function ProtectedMaterialCheck(output){
         return false;
     }catch(err){
         console.error('Error checking for protected material:', err);
-        return false; // Safe fallback so your server keeps responding
+        return false; 
     }
 }
 

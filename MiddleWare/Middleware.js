@@ -11,6 +11,7 @@ const {TaskAdherence}=require('./TaskAdherence');
 const {analyzeTextHarms}=require('./analyseText');
 const app=express();
 const { PromptSizePass } = require('./PromptSizePass');
+const { FetchResponse } = require('./FetchResponse');
 
 
 // Rate limiting middleware
@@ -65,8 +66,8 @@ app.post('/api/textAnalysis', async (req, res) => {
     // Run checks
     const harmScores = await analyzeTextHarms(prompt);
 
-    // Security Logic: Block if it's a jailbreak OR if any category is > 2 (Medium/High)
-    const shouldBlock =  Object.values(harmScores).some(score => score > 2);
+    // Security Logic: Block if it's a jailbreak OR if any category is >= 1 (Medium/High)
+    const shouldBlock =  Object.values(harmScores).some(score => score >= 1);
 
     res.json({
         allowed: !shouldBlock,
@@ -144,6 +145,27 @@ app.post('/api/taskadherence', async (req, res) => {
         console.error('Error finding code source:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
+});
+
+app.post('/api/query', async (req,res) => {
+    const {backendURL, prompt} = req.body;
+    
+    const isValidSize = await PromptSizePass(prompt);
+    if(!isValidSize) return res.status(400).json({'message': 'Prompt size exceeds allowed limit'});
+
+    const anonymizedObj = await anonymizeText(prompt);
+    const text = anonymizedObj.anonymized_text;
+    
+    const isJailBreakPrompt = await InstructionOverrideCheck(text);
+    if(isJailBreakPrompt) return res.status(400).json({'message': 'Trying to jailbreak, change your prompt and try again'});
+    
+    const isGoodText = !Object.values(await analyzeTextHarms(text)).some(value => value >= 1);
+    if(!isGoodText) return res.status(400).json({'message':'Text contains adversarial content'});
+
+    const BackendRes = await FetchResponse(backendURL, text);
+    if(!BackendRes) return res.status(400).json({'message':'Bad Request'});
+    const Response = await deanonymizeText(BackendRes.message, anonymizedObj.mapping);
+    return res.json({'message': Response});
 });
 
 app.listen(process.env.PORT || 5000, () => {
