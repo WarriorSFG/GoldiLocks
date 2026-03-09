@@ -9,7 +9,8 @@ const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
 const { ProtectedCodeCheck}=require('./ProtectedCodePass');
 const {TaskAdherence}=require('./TaskAdherence');
 const {analyzeTextHarms}=require('./analyseText');
-const router = express.Router();
+const app=express();
+const { PromptSizePass } = require('./PromptSizePass');
 
 
 // Rate limiting middleware
@@ -18,7 +19,6 @@ const limiter = rateLimit({
     max: 30,
     message: { error: 'Too many requests, please try again later.' }
 })
-router.use(limiter);
 //mapping 
 const mappingStore = {};
 
@@ -29,15 +29,24 @@ function saveMapping(id, mapping) {
 function getMapping(id) {
     return mappingStore[id];
 }
-router.use(limiter);
-router.use(cors());
-router.use(express.json());
+app.use(limiter);
+app.use(cors());
+app.use(express.json());
 
 
-
+app.post('/api/CheckPromptSize', (req,res) => {
+    const {prompt} = req.body;
+    try{
+        const isValidSize = PromptSizePass(prompt);
+        res.json({ validSize: isValidSize });
+    } catch (error) {
+        console.error('Error checking prompt size:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 //Checks if the user is trying to override instructions or jailbreak the model using Azure Content Safety API
-router.post('/api/CheckInstructionOverride', async (req, res) => {
+app.post('/api/CheckInstructionOverride', async (req, res) => {
     const { prompt } = req.body;
     try {
         const isJailbreak = await InstructionOverrideCheck(prompt);
@@ -50,7 +59,7 @@ router.post('/api/CheckInstructionOverride', async (req, res) => {
 
 
 //text analysis on 4 parameters- self harm, sexual,hate,violence
-router.post('/api/textAnalysis', async (req, res) => {
+app.post('/api/textAnalysis', async (req, res) => {
     const { prompt } = req.body;
     
     // Run checks
@@ -66,7 +75,7 @@ router.post('/api/textAnalysis', async (req, res) => {
 });
 
 //Check if the model is directly outputting protected material.
-router.post('/api/CheckProtectedMaterial', async (req, res) => {
+app.post('/api/CheckProtectedMaterial', async (req, res) => {
     const { text } = req.body;
     try {
         const isProtected = await ProtectedMaterialCheck(text);
@@ -78,7 +87,7 @@ router.post('/api/CheckProtectedMaterial', async (req, res) => {
 });
 
 //Provide links if github code found 
-router.post('/api/CheckProtectedCode', async(req, res) => {
+app.post('/api/CheckProtectedCode', async(req, res) => {
     const {code} = req.body;
     try{
         const links= await ProtectedCodeCheck(code);
@@ -93,7 +102,7 @@ router.post('/api/CheckProtectedCode', async(req, res) => {
 });
 
 //Anonymize PII in the prompt using Presidio and store the mapping in memory. This is a simple implementation and can be improved by using a database or cache for larger scale applications.
-router.post('/api/anonymize', async (req, res) => {
+app.post('/api/anonymize', async (req, res) => {
     const { prompt } = req.body;
     try {
         const anonymized = await anonymizeText(prompt);
@@ -111,7 +120,7 @@ router.post('/api/anonymize', async (req, res) => {
 });
 
 //Deanonymize the text using the mapping stored in memory. Again, this is a simple implementation and can be improved by using a database or cache for larger scale applications.
-router.post('/api/deanonymize', async (req, res) => {
+app.post('/api/deanonymize', async (req, res) => {
     const { id, prompt } = req.body;
     try {
         const mapping = getMapping(id);
@@ -124,7 +133,7 @@ router.post('/api/deanonymize', async (req, res) => {
     }
 });
 
-router.post('/api/taskadherence', async (req, res) => {
+app.post('/api/taskadherence', async (req, res) => {
     const { tools,messages } = req.body;
     try {
        
@@ -137,6 +146,6 @@ router.post('/api/taskadherence', async (req, res) => {
     }
 });
 
-router.listen(process.env.PORT || 5000, () => {
+app.listen(process.env.PORT || 5000, () => {
     console.log(`Server is running on port ${process.env.PORT || 5000}`);
 });
