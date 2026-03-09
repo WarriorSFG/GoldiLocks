@@ -6,6 +6,8 @@ const { anonymizeText } = require('./AnonymisePII');
 const { deanonymizeText } = require('./AnonymisePII');
 const { InstructionOverrideCheck } = require('./InstructionOverridePass');
 const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
+const { ProtectedCodeCheck } = require('./ProtectedCodePass');
+const { PromptSizePass } = require('./PromptSizePass');
 
 const app = express();
 
@@ -15,6 +17,7 @@ const limiter = rateLimit({
     max: 30,
     message: { error: 'Too many requests, please try again later.' }
 })
+
 //mapping 
 const mappingStore = {};
 
@@ -30,7 +33,16 @@ app.use(cors());
 app.use(express.json());
 
 
-
+app.post('/api/CheckPromptSize', (req,res) => {
+    const {prompt} = req.body;
+    try{
+        const isValidSize = PromptSizePass(prompt);
+        res.json({ validSize: isValidSize });
+    } catch (error) {
+        console.error('Error checking prompt size:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 //Checks if the user is trying to override instructions or jailbreak the model using Azure Content Safety API
 app.post('/api/CheckInstructionOverride', async (req, res) => {
