@@ -6,8 +6,11 @@ const { anonymizeText } = require('./AnonymisePII');
 const { deanonymizeText } = require('./AnonymisePII');
 const { InstructionOverrideCheck } = require('./InstructionOverridePass');
 const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
+const { ProtectedCodeCheck}=require('./ProtectedCodePass');
+const {TaskAdherence}=require('./TaskAdherence');
+const {analyzeTextHarms}=require('./analyseText');
+const router = express.Router();
 
-const app = express();
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -15,6 +18,7 @@ const limiter = rateLimit({
     max: 30,
     message: { error: 'Too many requests, please try again later.' }
 })
+router.use(limiter);
 //mapping 
 const mappingStore = {};
 
@@ -25,15 +29,15 @@ function saveMapping(id, mapping) {
 function getMapping(id) {
     return mappingStore[id];
 }
-app.use(limiter);
-app.use(cors());
-app.use(express.json());
+router.use(limiter);
+router.use(cors());
+router.use(express.json());
 
 
 
 
 //Checks if the user is trying to override instructions or jailbreak the model using Azure Content Safety API
-app.post('/api/CheckInstructionOverride', async (req, res) => {
+router.post('/api/CheckInstructionOverride', async (req, res) => {
     const { prompt } = req.body;
     try {
         const isJailbreak = await InstructionOverrideCheck(prompt);
@@ -44,8 +48,25 @@ app.post('/api/CheckInstructionOverride', async (req, res) => {
     };
 });
 
+
+//text analysis on 4 parameters- self harm, sexual,hate,violence
+router.post('/api/textAnalysis', async (req, res) => {
+    const { prompt } = req.body;
+    
+    // Run checks
+    const harmScores = await analyzeTextHarms(prompt);
+
+    // Security Logic: Block if it's a jailbreak OR if any category is > 2 (Medium/High)
+    const shouldBlock =  Object.values(harmScores).some(score => score > 2);
+
+    res.json({
+        allowed: !shouldBlock,
+        harms: harmScores
+    });
+});
+
 //Check if the model is directly outputting protected material.
-app.post('/api/CheckProtectedMaterial', async (req, res) => {
+router.post('/api/CheckProtectedMaterial', async (req, res) => {
     const { text } = req.body;
     try {
         const isProtected = await ProtectedMaterialCheck(text);
@@ -57,7 +78,7 @@ app.post('/api/CheckProtectedMaterial', async (req, res) => {
 });
 
 //Provide links if github code found 
-app.post('/api/CheckProtectedCode', async(req, res) => {
+router.post('/api/CheckProtectedCode', async(req, res) => {
     const {code} = req.body;
     try{
         const links= await ProtectedCodeCheck(code);
@@ -72,7 +93,7 @@ app.post('/api/CheckProtectedCode', async(req, res) => {
 });
 
 //Anonymize PII in the prompt using Presidio and store the mapping in memory. This is a simple implementation and can be improved by using a database or cache for larger scale applications.
-app.post('/api/anonymize', async (req, res) => {
+router.post('/api/anonymize', async (req, res) => {
     const { prompt } = req.body;
     try {
         const anonymized = await anonymizeText(prompt);
@@ -90,7 +111,7 @@ app.post('/api/anonymize', async (req, res) => {
 });
 
 //Deanonymize the text using the mapping stored in memory. Again, this is a simple implementation and can be improved by using a database or cache for larger scale applications.
-app.post('/api/deanonymize', async (req, res) => {
+router.post('/api/deanonymize', async (req, res) => {
     const { id, prompt } = req.body;
     try {
         const mapping = getMapping(id);
@@ -103,6 +124,19 @@ app.post('/api/deanonymize', async (req, res) => {
     }
 });
 
-app.listen(process.env.PORT || 5000, () => {
+router.post('/api/taskadherence', async (req, res) => {
+    const { tools,messages } = req.body;
+    try {
+       
+        const response = await TaskAdherence(tools,messages);
+        res.json(response);
+    }
+    catch (error) {
+        console.error('Error finding code source:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+router.listen(process.env.PORT || 5000, () => {
     console.log(`Server is running on port ${process.env.PORT || 5000}`);
 });
