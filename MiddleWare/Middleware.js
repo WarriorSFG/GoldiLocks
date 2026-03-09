@@ -6,10 +6,12 @@ const { anonymizeText } = require('./AnonymisePII');
 const { deanonymizeText } = require('./AnonymisePII');
 const { InstructionOverrideCheck } = require('./InstructionOverridePass');
 const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
-const { ProtectedCodeCheck } = require('./ProtectedCodePass');
+const { ProtectedCodeCheck}=require('./ProtectedCodePass');
+const {TaskAdherence}=require('./TaskAdherence');
+const {analyzeTextHarms}=require('./analyseText');
+const app=express();
 const { PromptSizePass } = require('./PromptSizePass');
 
-const app = express();
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -17,7 +19,6 @@ const limiter = rateLimit({
     max: 30,
     message: { error: 'Too many requests, please try again later.' }
 })
-
 //mapping 
 const mappingStore = {};
 
@@ -54,6 +55,23 @@ app.post('/api/CheckInstructionOverride', async (req, res) => {
         console.error('Error checking for jailbreak:', error);
         res.status(500).json({ error: 'Internal Server Error' });
     };
+});
+
+
+//text analysis on 4 parameters- self harm, sexual,hate,violence
+app.post('/api/textAnalysis', async (req, res) => {
+    const { prompt } = req.body;
+    
+    // Run checks
+    const harmScores = await analyzeTextHarms(prompt);
+
+    // Security Logic: Block if it's a jailbreak OR if any category is > 2 (Medium/High)
+    const shouldBlock =  Object.values(harmScores).some(score => score > 2);
+
+    res.json({
+        allowed: !shouldBlock,
+        harms: harmScores
+    });
 });
 
 //Check if the model is directly outputting protected material.
@@ -108,6 +126,19 @@ app.post('/api/deanonymize', async (req, res) => {
         const mapping = getMapping(id);
         const deanonymized = await deanonymizeText(prompt, mapping);
         res.json({ text: deanonymized });
+    }
+    catch (error) {
+        console.error('Error finding code source:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+app.post('/api/taskadherence', async (req, res) => {
+    const { tools,messages } = req.body;
+    try {
+       
+        const response = await TaskAdherence(tools,messages);
+        res.json(response);
     }
     catch (error) {
         console.error('Error finding code source:', error);
