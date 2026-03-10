@@ -26,7 +26,7 @@ app.http('SendPromptEndpoint', {
                 method: 'POST',
                 headers: {
                     'content-type': 'application/json',
-                    'api-key': AZURE_KEY
+                    'Authorization': `Bearer ${AZURE_KEY}`
                 },
                 body: JSON.stringify({
                     messages: [
