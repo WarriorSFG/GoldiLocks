@@ -1,0 +1,13 @@
+{
+  "name": "goldilocks-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "Azure_Server.js",
+  "scripts": {
+    "start": "func start",
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  }
+}
