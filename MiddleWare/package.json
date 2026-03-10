@@ -1,4 +1,10 @@
 {
+  "name": "goldilocks-middleware",
+  "version": "1.0.0",
+  "main": "Middleware.js",
+  "scripts": {
+    "start": "node Middleware.js" 
+  },
   "dependencies": {
     "axios": "^1.13.6",
     "cors": "^2.8.6",
