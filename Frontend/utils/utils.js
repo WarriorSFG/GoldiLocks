@@ -1,8 +1,9 @@
-const BACKEND_URL = 'http://localhost:3000/api';
-const MIDDLEWARE_URL = 'http://localhost:5000/api/query';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const MIDDLEWARE_URL = import.meta.env.VITE_MIDDLEWARE_URL;
 
 export const SendPrompt = async (prompt, useMiddleWare, onProgress) => {
   try {
+    console.log(useMiddleWare);
     const response = await fetch(`${useMiddleWare? MIDDLEWARE_URL : BACKEND_URL+ '/SendPrompt' }`, {
       method: 'POST',
       headers: {

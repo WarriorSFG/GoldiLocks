@@ -10,7 +10,7 @@ function App() {
   const [useMiddleWare, setUseMiddleWare]= useState(true);
   const [SecurityStep, setSecurityStep] = useState([]);
   const [userInput, setUserInput] = useState('');
-
+  
   const handleSendPrompt = async (prompt) => {
     try {
       setPromptResponse('Sending prompt...');
