@@ -31,7 +31,7 @@ app.post('/api/SendPrompt', async(req, res) => {
                     { role: "user", content: prompt }
                 ],
                 model:MODEL_NAME,
-                max_tokens: 8192,
+                "max_completion_tokens": 8192
             })
         });
 
