@@ -1,4 +1,4 @@
-export async function analyzeTextHarms(text) {
+async function analyzeTextHarms(text) {
     try {
         const response = await fetch(`${process.env.AZURE_CONTENT_SAFETY_ENDPOINT}/contentsafety/text:analyze?api-version=2024-09-01`, {
             method: 'POST',
@@ -30,4 +30,8 @@ export async function analyzeTextHarms(text) {
         console.error('Error in Text Analysis:', error.message);
         return null; 
     }
-}
+};
+
+module.exports = {
+    analyzeTextHarms
+};

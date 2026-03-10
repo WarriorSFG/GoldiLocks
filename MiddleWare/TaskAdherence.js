@@ -3,7 +3,7 @@ dotenv.config();
 
 const AZURE_CONTENT_SAFETY_ENDPOINT = process.env.AZURE_CONTENT_SAFETY_ENDPOINT;
 const AZURE_CONTENT_SAFETY_KEY = process.env.AZURE_CONTENT_SAFETY_ENDPOINT;
-export async function TaskAdherence(tools,messages){
+async function TaskAdherence(tools,messages){
     try{
         const response=await fetch(`${AZURE_CONTENT_SAFETY_ENDPOINT}/contentsafety/image:analyze?api-version=2025-09-15-preview`,{
             method:'POST',
@@ -29,4 +29,8 @@ export async function TaskAdherence(tools,messages){
                 return { error: error.message }; 
         }
 
+}
+
+module.exports = {
+    TaskAdherence
 }

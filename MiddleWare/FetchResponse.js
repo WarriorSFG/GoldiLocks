@@ -1,4 +1,4 @@
-export async function FetchResponse(BackendURL, prompt) {
+async function FetchResponse(BackendURL, prompt) {
     try{
         const response = await fetch(BackendURL, {
             method:'POST',
@@ -21,4 +21,8 @@ export async function FetchResponse(BackendURL, prompt) {
     }catch (Err){
         console.log(Err.error?.message || 'Internal Server Error');
     }
+}
+
+module.exports = {
+    FetchResponse
 }

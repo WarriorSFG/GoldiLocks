@@ -1,4 +1,4 @@
-export async function ProtectedCodeCheck(code){
+async function ProtectedCodeCheck(code){
     if(!code) return;
 
     console.log(code);
@@ -24,4 +24,8 @@ export async function ProtectedCodeCheck(code){
     catch(error){
         console.error("Error detecting protected code:",error);
     }
+}
+
+module.exports = {
+    ProtectedCodeCheck
 }

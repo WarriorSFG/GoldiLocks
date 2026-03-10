@@ -201,7 +201,7 @@ app.post('/api/query', async (req, res) => {
         sendUpdate('Connection', 'feteched data from backend');
 
         const resText = BackendRes.message;
-
+        
         const isCopyRighted = await ProtectedMaterialCheck(resText);
         if (isCopyRighted) {
             sendUpdate('Copyright Protection', 'output contains copyrighted content', true);
