@@ -9,7 +9,7 @@ require('dotenv').config();
 const PORT = process.env.PORT || 5000;
 const AZURE_ENDPOINT = process.env.AZURE_ENDPOINT;
 const AZURE_KEY = process.env.AZURE_KEY;
-
+const MODEL_NAME = process.env.MODEL_NAME;
 
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Server Online!' });
@@ -30,6 +30,7 @@ app.post('/api/SendPrompt', async(req, res) => {
                     { role: "system", content: "You are a helpful assistant." },
                     { role: "user", content: prompt }
                 ],
+                model:MODEL_NAME,
                 max_tokens: 8192,
             })
         });

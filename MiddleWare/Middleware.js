@@ -192,7 +192,7 @@ app.post('/api/query', async (req, res) => {
 
         sendUpdate('Adverserial Use', 'No inappropiate usage detected');
 
-        const BackendRes = await FetchResponse(backendURL, text);
+        const BackendRes = await FetchResponse(process.env.BACKEND_URL, text);
         if (!BackendRes) {
             sendUpdate('Connection', 'Failed to connect to backend', true);
             return res.end();

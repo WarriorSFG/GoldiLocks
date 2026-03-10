@@ -20,6 +20,7 @@ app.http('SendPromptEndpoint', {
 
             const AZURE_ENDPOINT = process.env.AZURE_ENDPOINT;
             const AZURE_KEY = process.env.AZURE_KEY;
+            const MODEL_NAME = process.env.MODEL_NAME;
 
             const response = await fetch(AZURE_ENDPOINT, {
                 method: 'POST',
@@ -32,6 +33,7 @@ app.http('SendPromptEndpoint', {
                         { role: "system", content: "You are a helpful assistant." },
                         { role: "user", content: prompt }
                     ],
+                    model: MODEL_NAME,
                     max_tokens: 8192,
                 })
             });
