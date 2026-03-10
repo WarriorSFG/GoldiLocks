@@ -28,8 +28,8 @@ async function TaskAdherence(tools,messages){
                 return { error: error.message }; 
         }
 
-}
+};
 
 module.exports = {
     TaskAdherence
-}
+};

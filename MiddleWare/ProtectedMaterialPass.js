@@ -21,7 +21,7 @@ async function ProtectedMaterialCheck(output){
         console.error('Error checking for protected material:', err);
         return false; 
     }
-}
+};
 
 module.exports = {
     ProtectedMaterialCheck

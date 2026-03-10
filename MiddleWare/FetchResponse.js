@@ -21,8 +21,8 @@ async function FetchResponse(BackendURL, prompt) {
     }catch (Err){
         console.log(Err.error?.message || 'Internal Server Error');
     }
-}
+};
 
 module.exports = {
     FetchResponse
-}
+};

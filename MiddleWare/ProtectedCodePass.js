@@ -24,8 +24,8 @@ async function ProtectedCodeCheck(code){
     catch(error){
         console.error("Error detecting protected code:",error);
     }
-}
+};
 
 module.exports = {
     ProtectedCodeCheck
-}
+};

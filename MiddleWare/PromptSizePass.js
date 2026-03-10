@@ -3,8 +3,8 @@ function PromptSizePass(prompt) {
         return true;
     }
     return false;
-}
+};
 
 module.exports = {
     PromptSizePass
-}
+};

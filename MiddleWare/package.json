@@ -2,6 +2,7 @@
   "name": "goldilocks-middleware",
   "version": "1.0.0",
   "main": "Middleware.js",
+  "type": "commonjs",
   "scripts": {
     "start": "node Middleware.js" 
   },
