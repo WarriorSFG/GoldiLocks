@@ -11,8 +11,9 @@ export async function FetchResponse(BackendURL, prompt) {
         })
 
         if(!response.ok){
-            const errorData = await response.json();
-            throw new Error(errorData.error?.message || 'Failed to fetch backend');
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error?.message || `Server Error: ${response.status}`;
+            return { error: true, message: errorMessage };
         }
 
         const data = await response.json();

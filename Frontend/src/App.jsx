@@ -8,21 +8,36 @@ function App() {
   const [promptResponse, setPromptResponse] = useState('');
   const [MessageHistory, setMessageHistory] = useState([]);
   const [useMiddleWare, setUseMiddleWare]= useState(true);
-
+  const [SecurityStep, setSecurityStep] = useState([]);
   const [userInput, setUserInput] = useState('');
 
   const handleSendPrompt = async (prompt) => {
     try {
       setPromptResponse('Sending prompt...');
-      MessageHistory.length === 0 ? setMessageHistory([{ sender: 'user', message: prompt }]) : setMessageHistory(prev => [...prev, { sender: 'user', message: prompt }]);
+      MessageHistory.length === 0 ? setMessageHistory([{ sender: 'user', message: prompt, isDeleted:false }]) : setMessageHistory(prev => [...prev, { sender: 'user', message: prompt, isDeleted:false}]);
       
       setUserInput('');
-      
+      setSecurityStep([]);
       const handleProgress = (updateData) =>{
         if(updateData.isError){
           console.log(`Blocked [${updateData.step}]: ${updateData.message}`);
+          setSecurityStep(prev => [...prev, {message:`Blocked [${updateData.step}]: ${updateData.message}`, isError:updateData.isError, id: Date.now()}]);
+          setMessageHistory(prev => {
+            const newHistory = [...prev];
+            newHistory[newHistory.length - 1] = {
+              sender: 'user',
+              message: `Content was Removed`,
+              isDeleted:true
+            };
+            return newHistory;
+          });
         }else{
           console.log(`[${updateData.step}]: ${updateData.message}`);
+          setSecurityStep(prev => [...prev, {
+            message: `[${updateData.step}]: ${updateData.message}`, 
+            isError: updateData.isError, 
+            id: Date.now() + Math.random()
+          }]);
         }
       }
 
@@ -109,11 +124,11 @@ function App() {
             <div className='chat-list'>
               <div className='security-layer'>
                 <h3>GoldiLocks Security Layer</h3>
-                <div className='security-pass'>Rate Limit Pass</div>
-                <div className='security-pass'>Rate Limit Pass</div>
-                <div className='security-pass'>Rate Limit Pass</div>
-                <div className='security-pass'>Rate Limit Pass</div>
-                <div className='security-pass'>Rate Limit Pass</div>
+                {SecurityStep.map((entry) => (
+                  <div key={entry.id} className={`security-pass Error-${entry.isError}`}>
+                    {entry.message}
+                  </div>
+                ))}
               </div>
             </div>
             <div className='security-enable-button'>
@@ -126,7 +141,7 @@ function App() {
                 {MessageHistory.map((entry, index) => (
                   entry.sender === 'user' ? (
                     <div className='user-m-container'>
-                      <div key={index} className='user-message'>
+                      <div key={index} className={`user-message isDeleted-${entry.isDeleted}`}>
                         <p>{entry.message}</p>
                       </div>
                       <div className='user-icon'><User2 size='2rem' /></div>

@@ -32,7 +32,7 @@ export const SendPrompt = async (prompt, useMiddleWare, onProgress) => {
           const data = JSON.parse(line);
 
           if(data.finalResponse){
-            finalData = {message: data.finalResponse.restored_text, citations: data.citations.CodeCitations};
+            finalData = {message: data.finalResponse?.restored_text, citations: data.citations?.CodeCitations};
           }else if(onProgress){
             onProgress(data);
           }
