@@ -148,7 +148,7 @@ app.post('/api/taskadherence', async (req, res) => {
 });
 
 app.post('/api/query', async (req, res) => {
-    const { backendURL, prompt } = req.body;
+    const { prompt } = req.body;
 
     res.setHeader('Content-Type', 'application/x-ndjson');
     res.setHeader('Transfer-Encoding', 'chunked');
