@@ -7,7 +7,7 @@ const { deanonymizeText } = require('./AnonymisePII');
 const { InstructionOverrideCheck } = require('./InstructionOverridePass');
 const { ProtectedMaterialCheck } = require('./ProtectedMaterialPass');
 const { ProtectedCodeCheck}=require('./ProtectedCodePass');
-const {TaskAdherence}=require('./TaskAdherence');
+//const {TaskAdherence}=require('./TaskAdherence');
 const {analyzeTextHarms}=require('./analyseText');
 const app=express();
 const { PromptSizePass } = require('./PromptSizePass');
@@ -134,6 +134,7 @@ app.post('/api/deanonymize', async (req, res) => {
     }
 });
 
+/*
 app.post('/api/taskadherence', async (req, res) => {
     const { tools,messages } = req.body;
     try {
@@ -146,6 +147,7 @@ app.post('/api/taskadherence', async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+*/
 
 app.post('/api/query', async (req, res) => {
     const { prompt } = req.body;
@@ -201,7 +203,7 @@ app.post('/api/query', async (req, res) => {
         sendUpdate('Connection', 'feteched data from backend');
 
         const resText = BackendRes.message;
-        
+
         const isCopyRighted = await ProtectedMaterialCheck(resText);
         if (isCopyRighted) {
             sendUpdate('Copyright Protection', 'output contains copyrighted content', true);
