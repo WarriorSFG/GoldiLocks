@@ -147,25 +147,85 @@ app.post('/api/taskadherence', async (req, res) => {
     }
 });
 
-app.post('/api/query', async (req,res) => {
-    const {backendURL, prompt} = req.body;
-    
+app.post('/api/query', async (req, res) => {
+    const { backendURL, prompt } = req.body;
+
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    const sendUpdate = (step, message, isError = false) => {
+        res.write(JSON.stringify({ step, message, isError }) + '\n');
+    }
+
+    sendUpdate('Connection', 'MiddleWare connection established');
+
     const isValidSize = await PromptSizePass(prompt);
-    if(!isValidSize) return res.status(400).json({'message': 'Prompt size exceeds allowed limit'});
+    if (!isValidSize) {
+        sendUpdate('Size Check', 'Prompt size exceeds allowed limit', true);
+        return res.end();
+    }
 
-    const anonymizedObj = await anonymizeText(prompt);
-    const text = anonymizedObj.anonymized_text;
-    
-    const isJailBreakPrompt = await InstructionOverrideCheck(text);
-    if(isJailBreakPrompt) return res.status(400).json({'message': 'Trying to jailbreak, change your prompt and try again'});
-    
-    const isGoodText = !Object.values(await analyzeTextHarms(text)).some(value => value >= 1);
-    if(!isGoodText) return res.status(400).json({'message':'Text contains adversarial content'});
+    sendUpdate('Size Check', 'Prompt size was appropiate');
+    try {
 
-    const BackendRes = await FetchResponse(backendURL, text);
-    if(!BackendRes) return res.status(400).json({'message':'Bad Request'});
-    const Response = await deanonymizeText(BackendRes.message, anonymizedObj.mapping);
-    return res.json({'message': Response});
+        const anonymizedObj = await anonymizeText(prompt);
+        if (!anonymizedObj) {
+            sendUpdate('Encrypt Data', 'Failed to encrypt data', true);
+            return res.end();
+        }
+
+        sendUpdate('Encrypt Data', 'Encrypted all personal details');
+        const text = anonymizedObj.anonymized_text;
+
+        const isJailBreakPrompt = await InstructionOverrideCheck(text);
+        if (isJailBreakPrompt) {
+            sendUpdate('JailBreak Detection', 'Trying to jailbreak application', true);
+            return res.end()
+        }
+        sendUpdate('JailBreak Detection', 'No jailbreak detected');
+
+        const isGoodText = !Object.values(await analyzeTextHarms(text)).some(value => value >= 1);
+        if (!isGoodText) {
+            sendUpdate('Adverserial Use', 'Misuse of LLM detected', true);
+            return res.end();
+        };
+
+        sendUpdate('Adverserial Use', 'No inappropiate usage detected');
+
+        const BackendRes = await FetchResponse(backendURL, text);
+        if (!BackendRes) {
+            sendUpdate('Connection', 'Failed to connect to backend', true);
+            return res.end();
+        }
+
+        sendUpdate('Connection', 'feteched data from backend');
+
+        const resText = BackendRes.message;
+
+        const isCopyRighted = await ProtectedMaterialCheck(resText);
+        if (isCopyRighted) {
+            sendUpdate('Copyright Protection', 'output contains copyrighted content', true);
+            return res.end();
+        }
+
+        sendUpdate('Copyright Protection', 'no copyrighted content present');
+
+        const Citations = await ProtectedCodeCheck(resText);
+
+        sendUpdate('Citations', 'retrieved citations');
+
+        const Response = await deanonymizeText(BackendRes.message, anonymizedObj.mapping);
+
+        sendUpdate('Decrypt', 'decrypted message to restore details');
+        
+        res.write(JSON.stringify({ finalResponse: Response, citations: Citations }) + '\n');
+        return res.end();
+    }
+    catch (error) {
+        console.log('Pipeline error', error);
+        sendUpdate('System Error', 'An internal error occurred', true);
+        return res.end();
+    }
 });
 
 app.listen(process.env.PORT || 5000, () => {

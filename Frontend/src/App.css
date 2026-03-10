@@ -79,6 +79,39 @@
   padding:0.5rem;
   color:dimgray;
 }
+
+.security-layer{
+  border: 3px solid #333;
+  margin: 1rem;
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+.security-pass{
+  padding: 1rem;
+  color:#333;
+}
+
+.security-enable-button{
+  padding-top: 1rem;
+  flex-shrink: 1;
+}
+
+.security-enable-button button{
+  padding:0.5rem;
+  height: 3.5rem;
+  font-size:1em;
+  margin-left: 0;
+  border-radius: 16px;
+  margin: 0.25rem;
+  background-color: #ff8c00;
+  color: #252525;
+  font-weight: 600;
+  border:none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 .chat-item:hover{
   background-color:darkgray;
   color: white;

@@ -1,21 +1,50 @@
-const API_URL = 'http://localhost:3000/api';
+const BACKEND_URL = 'http://localhost:3000/api';
+const MIDDLEWARE_URL = 'http://localhost:5000/api/query';
 
-export const SendPrompt = async (prompt) => {
+export const SendPrompt = async (prompt, useMiddleWare, onProgress) => {
   try {
-    const response = await fetch(`${API_URL}/SendPrompt`, {
+    const response = await fetch(`${useMiddleWare? MIDDLEWARE_URL : BACKEND_URL+ '/SendPrompt' }`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt , backendURL: BACKEND_URL +'/SendPrompt'}),
     });
 
     if (!response.ok) {
       throw new Error('Network response was not ok');
     }
 
+    if(useMiddleWare){
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      let finalData = null;
+
+      while(true){
+        const {done, value} = await reader.read();
+        if(done) break;
+
+        const chunk = decoder.decode(value);
+        const lines = chunk.split('\n').filter(line => line.trim() != '');
+
+        for(const line of lines){
+          const data = JSON.parse(line);
+
+          if(data.finalResponse){
+            finalData = {message: data.finalResponse.restored_text, citations: data.citations.CodeCitations};
+          }else if(onProgress){
+            onProgress(data);
+          }
+        }
+      }
+      return finalData;
+    }
+
+
     const data = await response.json();
     return data;
+
   } catch (error) {
     console.error('Error sending prompt:', error);
     return { message: 'Error sending prompt' };
@@ -24,7 +53,7 @@ export const SendPrompt = async (prompt) => {
 
 export const TestConnection = async () => {
   try {
-    const response = await fetch(`${API_URL}/test`, {
+    const response = await fetch(`${BACKEND_URL}/test`, {
       method: 'GET'
     });
 

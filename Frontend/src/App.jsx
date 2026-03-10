@@ -7,17 +7,33 @@ function App() {
   const [serverStatus, setServerStatus] = useState('Checking server status...');
   const [promptResponse, setPromptResponse] = useState('');
   const [MessageHistory, setMessageHistory] = useState([]);
+  const [useMiddleWare, setUseMiddleWare]= useState(true);
+
   const [userInput, setUserInput] = useState('');
 
   const handleSendPrompt = async (prompt) => {
     try {
       setPromptResponse('Sending prompt...');
       MessageHistory.length === 0 ? setMessageHistory([{ sender: 'user', message: prompt }]) : setMessageHistory(prev => [...prev, { sender: 'user', message: prompt }]);
+      
       setUserInput('');
-      const response = await SendPrompt(prompt);
-      //const response = {message: "This is a simulated response from the server."};
+      
+      const handleProgress = (updateData) =>{
+        if(updateData.isError){
+          console.log(`Blocked [${updateData.step}]: ${updateData.message}`);
+        }else{
+          console.log(`[${updateData.step}]: ${updateData.message}`);
+        }
+      }
+
+      const response = await SendPrompt(prompt, useMiddleWare, handleProgress);
+
+      if(!response || response.error){
+        return;
+      }
       const cleanedResponse = CleanResponse(response.message);
       setPromptResponse('Ready to chat!');
+
       if (cleanedResponse.message) {
         if (cleanedResponse.thought) {
           setMessageHistory(prev => [...prev, { sender: 'bot', thought: cleanedResponse.thought, message: cleanedResponse.message }]);
@@ -25,8 +41,14 @@ function App() {
           setMessageHistory(prev => [...prev, { sender: 'bot', thought: "", message: cleanedResponse.message }]);
         }
       }
+      
+      if (response.citations) {
+          console.log("Citations found:", response.citations);
+      }
+
     } catch (error) {
       console.error('Error sending prompt:', error);
+      setPromptResponse('An error occured');
     }
   };
 
@@ -68,8 +90,8 @@ function App() {
     <>
       <div className="main-container">
         <div className='header'>
-          <div className='logo'>G</div>
-          <h1>GoldiLocks</h1>
+          <div className='logo'>O</div>
+          <h1>Orion</h1>
             <div className='server-stats'>
               <div className='stat'>
                 <p><span className={promptResponse === 'Ready to chat!' ? 'Green' : promptResponse === 'Sending prompt...' ? 'Yellow' : 'Red'}>{serverStatus}</span></p>
@@ -83,6 +105,19 @@ function App() {
               <div className='chat-item active'>Chat 1</div>
               <div className='chat-item'>Chat 2</div>
               <div className='chat-item'>Chat 3</div>
+            </div>
+            <div className='chat-list'>
+              <div className='security-layer'>
+                <h3>GoldiLocks Security Layer</h3>
+                <div className='security-pass'>Rate Limit Pass</div>
+                <div className='security-pass'>Rate Limit Pass</div>
+                <div className='security-pass'>Rate Limit Pass</div>
+                <div className='security-pass'>Rate Limit Pass</div>
+                <div className='security-pass'>Rate Limit Pass</div>
+              </div>
+            </div>
+            <div className='security-enable-button'>
+              <button onClick={() => setUseMiddleWare(!useMiddleWare)}>{useMiddleWare ? "Turn off Security" : "Turn on Security"}</button>
             </div>
           </div>
           <div className='message-container'>
