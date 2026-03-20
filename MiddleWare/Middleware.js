@@ -168,6 +168,7 @@ app.post('/api/query', async (req, res) => {
     }
 
     sendUpdate('Size Check', 'Prompt size was appropiate');
+    // checking anonymised text
     try {
 
         const anonymizedObj = await anonymizeText(prompt);
